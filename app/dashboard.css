@@ -1,0 +1,544 @@
+.loadingScreen {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.dashboard {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  height: 100vh;
+}
+
+/* Mobile-only controls (sheet handle, floating action buttons): always in the
+   DOM, hidden by default so desktop never shows them; the media query below
+   turns them back on for narrow viewports. Declared here, ahead of that
+   query, so its rules win on mobile by source order. */
+.sheetHandle,
+.mapFab {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  /* Map goes full-bleed; the panel floats over it as a translucent sheet. */
+  .dashboard {
+    display: block;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  .mapArea {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+  }
+
+  /* Pin the actual map canvas straight to the viewport so it never depends on
+     an ancestor resolving a percentage height. `!important` because the
+     library also sets an inline width:100%/height:100% (mapContainerStyle) -
+     without it, a browser that doesn't drop the over-constrained `bottom`
+     here could size the canvas from that inline height instead of these
+     offsets, before its own containing block is what we expect. */
+  .mapCanvas {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+  }
+
+  /* The sidebar becomes a bottom-of-top-anchored "sheet": a slim tappable
+     handle bar plus, when expanded, the full panel scrolling underneath it.
+     Collapsed is the default so the map reads as full-screen, Google-Maps-
+     app style; the handle's summary line always says what's going on. */
+  .sidebar {
+    position: fixed;
+    z-index: 2;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    padding: 0 14px 18px;
+    gap: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(22, 29, 38, 0.94);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    overscroll-behavior: contain;
+    transition: max-height 0.22s ease;
+  }
+
+  .sidebar.sheetCollapsed {
+    max-height: 62px;
+    overflow: hidden;
+  }
+
+  .sidebar.sheetExpanded {
+    max-height: 80vh;
+    max-height: 80dvh;
+    overflow-y: auto;
+  }
+
+  .sheetHandle {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: calc(100% + 28px);
+    margin: 0 -14px;
+    padding: 10px 14px 8px;
+    background: inherit;
+    border: none;
+    color: var(--text);
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  .sheetGrip {
+    display: none;
+  }
+
+  .sheetSummary {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sheetChevron {
+    color: var(--text-faint);
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .brand h1 {
+    font-size: 17px;
+  }
+
+  .brand p.muted {
+    display: none;
+  }
+
+  /* Floating actions over the map - only exist as UI on mobile; the buttons
+     are still in the DOM on desktop but this rule (and thus their visibility)
+     is scoped to this media query. */
+  .mapFab {
+    position: fixed;
+    z-index: 2;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: rgba(22, 29, 38, 0.94);
+    color: var(--text);
+    font-size: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .mapFabAdd {
+    right: 12px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 76px);
+  }
+
+  .mapFabActive {
+    background: var(--route);
+    border-color: var(--route);
+    color: #10151c;
+  }
+
+  .mapFabSheet {
+    right: 12px;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+    font-size: 19px;
+  }
+}
+
+
+
+.sidebar {
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 24px 20px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.mapArea {
+  position: relative;
+}
+
+.brand h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.brand p.muted {
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sectionHeader h2 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.pillButton {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 999px;
+  font-size: 12px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.pillButton:hover {
+  background: var(--surface-hover);
+}
+.pillButtonActive {
+  background: var(--route);
+  border-color: var(--route);
+  color: #10151c;
+  font-weight: 600;
+}
+
+.mapToast {
+  position: absolute;
+  z-index: 3;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(22, 29, 38, 0.94);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.toggleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.toggleRow:hover {
+  background: var(--surface-hover);
+}
+
+.toggleRow input {
+  margin: 2px 0 0;
+  accent-color: var(--route);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.toggleText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toggleText strong {
+  font-size: 13px;
+}
+
+.toggleText .muted {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.textInput {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 9px 12px;
+  font-size: 13px;
+}
+.textInput::placeholder {
+  color: var(--text-faint);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin: 8px 0 0;
+}
+
+.emptyHint {
+  font-size: 13px;
+  color: var(--text-faint);
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+
+.errorText {
+  font-size: 13px;
+  color: var(--danger);
+  margin: 10px 0 0;
+}
+
+.sourceList {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sourceRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.sourceRow:hover {
+  background: var(--surface-hover);
+}
+
+.sourceRowActive {
+  border-color: var(--source);
+  background: var(--surface-hover);
+}
+
+.sourceRowMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.corridorPicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+}
+
+.corridorPicker select {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 3px 6px;
+  font-family: inherit;
+}
+
+.corridorDistrict {
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.corridorSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.corridorLegend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.corridorLegend li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.corridorLegend .corridorSwatch {
+  margin-top: 3px;
+}
+
+.legRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sourceName {
+  font-size: 13px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bestTag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--source);
+  border: 1px solid var(--source);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.removeButton {
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.removeButton:hover {
+  color: var(--danger);
+}
+
+.destinationCard {
+  margin-top: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.destinationCardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.destinationCard strong {
+  font-size: 14px;
+}
+.destinationCard .muted {
+  font-size: 12px;
+}
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.statBlock {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.statValue {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.routeSummary {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 14px 0 0;
+}
+
+.subsection {
+  margin-top: 18px;
+}
+
+.subsection h3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+
+.stopList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stopList li {
+  font-size: 13px;
+  padding: 6px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
