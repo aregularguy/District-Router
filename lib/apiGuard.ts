@@ -23,8 +23,8 @@ function isAllowedOrigin(req: NextRequest): boolean {
 
 // 20 requests / 60s per client IP. Skipped entirely when Upstash isn't
 // configured (local dev, or before you connect it), so nothing breaks.
-const url = process.env.UPSTASH_REDIS_REST_URL;
-const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+const url = process.env.KV_REST_API_URL;
+const token = process.env.KV_REST_API_TOKEN;
 const ratelimit =
   url && token
     ? new Ratelimit({
