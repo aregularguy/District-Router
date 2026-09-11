@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { LatLng, TollPlaza } from "@/lib/types";
+import { guard } from "@/lib/apiGuard";
 
 /**
  * POST { encodedPolyline: string, vehicleType?: string }
@@ -40,6 +41,11 @@ interface TollGuruToll {
 
 export async function POST(req: NextRequest) {
   const apiKey = process.env.TOLLGURU_API_KEY;
+   const blocked = await guard(req);
+  
+    if (blocked) {
+      return blocked;
+    }
   const { encodedPolyline, vehicleType } = (await req.json()) as {
     encodedPolyline: string;
     vehicleType?: string;

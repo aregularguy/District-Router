@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { LatLng } from "@/lib/types";
+import {guard } from "@/lib/apiGuard";
+
 
 /**
  * POST { origin: LatLng, destination: LatLng, waypoints?: LatLng[] }
@@ -14,6 +16,12 @@ import type { LatLng } from "@/lib/types";
  */
 export async function POST(req: NextRequest) {
   const apiKey = process.env.GOOGLE_MAPS_SERVER_API_KEY;
+  const blocked = await guard(req);
+
+  if (blocked) {
+    return blocked;
+  }
+
   if (!apiKey) {
     return NextResponse.json(
       { error: "GOOGLE_MAPS_SERVER_API_KEY is not configured on the server." },

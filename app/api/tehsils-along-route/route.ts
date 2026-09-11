@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { decodePolyline, sampleAlongPath } from "@/lib/geoUtils";
 import type { TehsilStop } from "@/lib/types";
-
+import {guard } from "@/lib/apiGuard";
 // How many points along the route to reverse-geocode. Each one is a
 // Geocoding API call, so this is a direct cost/latency knob.
 const SAMPLE_COUNT = 8;
@@ -17,6 +17,11 @@ const SAMPLE_COUNT = 8;
  */
 export async function POST(req: NextRequest) {
   const apiKey = process.env.GOOGLE_MAPS_SERVER_API_KEY;
+  const blocked = await guard(req);
+
+  if (blocked) {
+    return blocked;
+  }
   if (!apiKey) {
     return NextResponse.json(
       { error: "GOOGLE_MAPS_SERVER_API_KEY is not configured on the server." },
